@@ -1,7 +1,9 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <strings.h>
+#include <string.h>
 #include <iostream>
+#include <net/if.h>
 
 int main()
 {
@@ -16,11 +18,35 @@ int main()
     server_sock.sin6_family = AF_INET6;
     server_sock.sin6_port = htons(12345);
 
-//    ret = inet_pton(AF_INET6, "fe80::20c:29ff:fede:af8b%eth0", &server_sock.sin6_addr);
+
+    struct in6_addr ip;
+
+    ret = inet_pton(AF_INET6, "::1", &ip);
+
+    if (ret == 0) {
+        printf("inet_pton not a valid src\n");
+        return -1;
+    } else if (ret == -1) {
+        perror("inet_pton error");
+        return -1;
+    }
 
     server_sock.sin6_addr = in6addr_any;
 
-    ret = bind(lfd, (struct sockaddr *) &server_sock, sizeof(struct sockaddr_in6));
+//    struct ifreq interface;
+//    strncpy(interface.ifr_ifrn.ifrn_name, "eth0", sizeof("eth0"));
+//
+//    if(setsockopt(lfd, SOL_SOCKET, SO_BINDTODEVICE, (char *)&interface, sizeof(interface)) == -1) {
+//        perror("setsockopt error");
+//        return  -1;
+//    }
+
+    ret = bind(lfd, (struct sockaddr *) &server_sock, sizeof(server_sock));
+
+    if (ret == -1) {
+        perror("bind error");
+        return -1;
+    }
 
     ret = listen(lfd, 128);
 
