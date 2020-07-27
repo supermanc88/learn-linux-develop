@@ -2,6 +2,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <strings.h>
+#include <string>
 
 // gethostbyname 和 gethostbyaddr 只支持ipv4
 
@@ -25,7 +26,8 @@ void get_sockaddr1() {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_IP;
 
-    int ret = getaddrinfo("fe80::20c:29ff:fe97:f022", NULL, &hints, &res);
+
+    int ret = getaddrinfo("::", NULL, &hints, &res);
 
     ressave = res;
 
@@ -78,7 +80,13 @@ void get_sockaddr2() {
     hints.ai_flags = AI_CANONNAME;
     hints.ai_family = AF_INET;
 
-    int ret = getaddrinfo("google.com", NULL, &hints, &res);
+    int port = 8080;
+
+    std::string str_port;
+
+    str_port = std::to_string(port);
+
+    int ret = getaddrinfo("0.0.0.0", str_port.c_str(), &hints, &res);
 
     ressave = res;
     while(res != NULL) {
@@ -86,7 +94,8 @@ void get_sockaddr2() {
         char buf[BUFSIZ] {0};
         struct sockaddr_in * v4 = (struct sockaddr_in *)res->ai_addr;
         inet_ntop(AF_INET, &(v4->sin_addr), buf, BUFSIZ);
-        printf("%s\n", buf);
+        printf("%s, %d\n", buf, ntohs(v4->sin_port));
+        break;
         res = res->ai_next;
     }
 
@@ -100,6 +109,29 @@ int main()
     get_sockaddr1();
 
     get_sockaddr2();
+
+    struct hostent * hp;
+    hp = gethostbyname2("::1", AF_INET6);
+
+    if (hp == NULL) {
+        printf("gethostname2 error\n");
+    }
+
+
+
+    char ipstr[BUFSIZ] = {0};
+
+    inet_ntop(AF_INET6, &in6addr_any, ipstr, BUFSIZ);
+
+    printf("%s\n", ipstr);
+
+    bzero(ipstr, BUFSIZ);
+
+    in_addr_t ipv4_any = INADDR_ANY;
+
+    inet_ntop(AF_INET, &ipv4_any, ipstr, BUFSIZ);
+
+    printf("%s\n", ipstr);
 
     std::cout << "Hello, World!" << std::endl;
     return 0;
